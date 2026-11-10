@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mega Store Escolar</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
+        header { background-color: #8e44ad; color: #fff; padding: 1.5rem; text-align: center; }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 1rem; text-align: center; }
+        .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 4px; }
+        .card h3 { margin: 0.5rem 0; color: #2c3e50; }
+        .card p { font-size: 0.9rem; color: #666; height: 40px; overflow: hidden; }
+        .preco { background: #e67e22; color: white; padding: 0.5rem; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Mega Store Escolar</h1>
+        <p>Escolha seus prémios em casa junto com a família!</p>
+    </header>
+
+    <div class="container">
+        <h2>Prêmios Disponíveis</h2>
+        <div id="lista-produtos" class="grid">
+            <p>A carregar prémios da escola...</p>
+        </div>
+    </div>
+
+    <script>
+        // COLE O SEU LINK CSV DA PLANILHA ENTRE AS ASPAS ABAIXO:
+        const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSOCdOAXY-bNbQSrEOs_tZr-HTq3iQ2iekLNcU3Sz59Hh6ZXrJb65lAra7iPH0NvJrEDlk-d2oKzX8E/pub?output=csv";
+
+        async function carregarProdutos() {
+            try {
+                const resposta = await fetch(urlCSV);
+                const dadosTexto = await resposta.text();
+                
+                // Processar o formato CSV da planilha
+                const linhas = dadosTexto.split("\n").slice(1); // Ignora o cabeçalho
+                const container = document.getElementById('lista-produtos');
+                container.innerHTML = "";
+
+                linhas.forEach(linha => {
+                    if (!linha.trim()) return;
+                    // Divide os valores por vírgula (ou ponto e vírgula, dependendo do formato do Google)
+                    const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    const nome = colunas[0]?.replace(/"/g, '').trim();
+                    const pontos = colunas[1]?.replace(/"/g, '').trim();
+                    const descricao = colunas[2]?.replace(/"/g, '').trim();
+                    const imagem = colunas[3]?.replace(/"/g, '').trim();
+
+                    if (nome) {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <img src="${imagem}" alt="${nome}" onerror="this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400'">
+                            <h3>${nome}</h3>
+                            <p>${descricao || ''}</p>
+                            <div class="preco">⭐ ${pontos} Pontos</div>
+                        `;
+                        container.appendChild(card);
+                    }
+                });
+            } catch (erro) {
+                console.error("Erro ao carregar produtos:", erro);
+                document.getElementById('lista-produtos').innerHTML = "<p>Erro ao carregar os prémios. Verifique a planilha.</p>";
+            }
+        }
+
+        carregarProdutos();
+    </script>
+</body>
+</html>
